@@ -17,7 +17,7 @@ if [[ -f "$DB" && "$DBCHECK" == "ok" ]]; then
         if [[ "$EMAIL" == "None" ]]; then
             printf "%s\n" "Database error was found, but no email is configured for root user"
             printf "%s\n" "Outputting error to shell only"
-            printf "%s\n" "ERROR: '$DBCHECK'"
+            printf "%s\n" "$DBCHECK"
           else
             {
             printf "To: %s\n" "$EMAIL"
