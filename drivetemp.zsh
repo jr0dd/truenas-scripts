@@ -1,7 +1,8 @@
 #!/usr/bin/env zsh
 
 # Change the max temp threshold to whatever you like
-MAX=40
+HDDMAX=40
+SSDMAX=60
 TMPFILE=$(mktemp)
 EMAIL=$(awk '{ if ($1 == "root\:") {print $2 } }' /etc/aliases)
 HOSTNAME=$(hostname)
@@ -19,8 +20,9 @@ printf "%s\n" "$sep"
 for i in "${HDD[@]}"; do
     TEMP=$(smartctl --json=g -A "$i" | grep 'json.temperature.current' | cut -d ' ' -f3 | tr -d \;)
     SN=$(smartctl --json=g -i "$i" | grep 'json.serial_number' | cut -d ' ' -f3 | tr -d \"\;)
+    TYPE=$(smartctl --json=g -a "$i" | grep 'json.rotation_rate' | cut -d ' ' -f3 | tr -d \;)
     if [[ $TEMP -ne 0 ]]; then
-        if [[ $TEMP -ge $MAX ]]; then
+        if [[ $TEMP -ge $SSDMAX && $TYPE -eq 0 || $TEMP -ge $HDDMAX && $TYPE -gt 0 ]]; then
           printf "$rows" "\e[37m$i" "\e[90m$SN" "\e[91;5m$TEMP\e[m"
         else
           printf "$rows" "\e[37m$i" "\e[90m$SN" "\e[96m$TEMP\e[m"
@@ -51,8 +53,9 @@ printf "%s\n" "<tr>" "<th style=\"width:22ch;\">Device</th>" "<th style=\"width:
 for i in "${HDD[@]}"; do
     TEMP=$(smartctl --json=g -A "$i" | grep 'json.temperature.current' | cut -d ' ' -f3 | tr -d \;)
     SN=$(smartctl --json=g -i "$i" | grep 'json.serial_number' | cut -d ' ' -f3 | tr -d \"\;)
+    TYPE=$(smartctl --json=g -a "$i" | grep 'json.rotation_rate' | cut -d ' ' -f3 | tr -d \;)
     if [[ $TEMP -ne 0 ]]; then
-        if [[ $TEMP -ge $MAX ]]; then
+        if [[ $TEMP -ge $SSDMAX && $TYPE -eq 0 || $TEMP -ge $HDDMAX && $TYPE -gt 0 ]]; then
           printf "%s\n" "<tr>" "<td>$i</td>" "<td style=\"color:#696969;\">$SN</td>" "<td style=\"color:#FF1744;\">$TEMP</td>" "</tr>" >> "$TMPFILE"
         else
           printf "%s\n" "<tr>" "<td>$i</td>" "<td style=\"color:#696969;\">$SN</td>" "<td style=\"color:#00E5FF;\">$TEMP</td>" "</tr>" >> "$TMPFILE"
